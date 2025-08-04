@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Meal Confirmation - Mess Management System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h2 class="mb-1">
+                        <i class="fas fa-check-circle me-2"></i>Meal Confirmation
+                    </h2>
+                    <p class="mb-0">Confirm your meal participation to help optimize food preparation</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Form -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h4 class="mb-4 text-center">
+                        <i class="fas fa-utensils me-2"></i>Confirm Your Meals
+                    </h4>
+                    
+                    <form method="POST">
+                        <div class="row">
+                            <!-- Date Selection -->
+                            <div class="col-md-6 mb-3">
+                                <label for="date" class="form-label">Select Date</label>
+                                <input type="date" class="form-control" id="date" name="date" 
+                                       min="{{ today }}" value="{{ tomorrow }}" required>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    You can confirm meals up to 3 days in advance
+                                </div>
+                            </div>
+                            
+                            <!-- Meal Type Selection -->
+                            <div class="col-md-6 mb-3">
+                                <label for="meal_type" class="form-label">Meal Type</label>
+                                <select class="form-select" id="meal_type" name="meal_type" required>
+                                    <option value="">Choose meal type</option>
+                                    <option value="breakfast">
+                                        <i class="fas fa-coffee"></i> Breakfast
+                                    </option>
+                                    <option value="lunch">
+                                        <i class="fas fa-hamburger"></i> Lunch
+                                    </option>
+                                    <option value="dinner">
+                                        <i class="fas fa-moon"></i> Dinner
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check me-2"></i>Confirm Meal
+                            </button>
+                            <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Information Section -->
+    <div class="row mt-5">
+        <div class="col-md-4 mb-3">
+            <div class="card bg-light h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x text-primary mb-3"></i>
+                    <h5 class="card-title">Advance Planning</h5>
+                    <p class="card-text">
+                        Confirm your meals in advance to help the mess prepare the right quantity 
+                        and reduce food wastage.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card bg-light h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-rupee-sign fa-2x text-success mb-3"></i>
+                    <h5 class="card-title">Fair Billing</h5>
+                    <p class="card-text">
+                        You'll only be charged for meals you confirm and consume, 
+                        ensuring transparent and fair billing.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card bg-light h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-leaf fa-2x text-warning mb-3"></i>
+                    <h5 class="card-title">Reduce Waste</h5>
+                    <p class="card-text">
+                        Your confirmations help optimize food preparation, 
+                        reducing waste and promoting sustainability.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Confirmation Options -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Confirmation
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Confirm all meals for tomorrow with one click:</p>
+                    
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="date" value="{{ tomorrow }}">
+                                <input type="hidden" name="meal_type" value="breakfast">
+                                <button type="submit" class="btn btn-outline-warning w-100">
+                                    <i class="fas fa-coffee me-2"></i>Breakfast
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="date" value="{{ tomorrow }}">
+                                <input type="hidden" name="meal_type" value="lunch">
+                                <button type="submit" class="btn btn-outline-success w-100">
+                                    <i class="fas fa-hamburger me-2"></i>Lunch
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="date" value="{{ tomorrow }}">
+                                <input type="hidden" name="meal_type" value="dinner">
+                                <button type="submit" class="btn btn-outline-info w-100">
+                                    <i class="fas fa-moon me-2"></i>Dinner
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Set minimum date to today
+document.getElementById('date').setAttribute('min', new Date().toISOString().split('T')[0]);
+
+// Set maximum date to 3 days from now
+const maxDate = new Date();
+maxDate.setDate(maxDate.getDate() + 3);
+document.getElementById('date').setAttribute('max', maxDate.toISOString().split('T')[0]);
+</script>
+{% endblock %}

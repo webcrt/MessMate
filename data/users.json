@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@mess.edu",
+    "password_hash": "scrypt:32768:8:1$jYjOLj1Y45QAfrR5$a8f8b9c6d8b5c4e8c5f4e8f5c4f8b5c6d8b5c4e8c5f4e8f5c4f8b5c6d8b5c4e8c5f4e8f5c4f8b5c6d8b5c4e8c5",
+    "role": "admin",
+    "name": "System Administrator",
+    "created_at": "2024-08-04T00:00:00"
+  },
+  {
+    "id": 2,
+    "username": "student",
+    "email": "student@mess.edu", 
+    "password_hash": "scrypt:32768:8:1$jYjOLj1Y45QAfrR5$b9f9c7d9c6d9f6e9d6f9e9f6d9f9c6d9c6d9f6e9d6f9e9f6d9f9c6d9c6d9f6e9d6f9e9f6d9f9c6d9c6d9f6e9d6",
+    "role": "student",
+    "name": "Demo Student",
+    "created_at": "2024-08-04T00:00:00"
+  }
+]

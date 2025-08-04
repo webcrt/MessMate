@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Mess Management System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    Smart Mess Management System
+                </h1>
+                <p class="lead mb-4">
+                    Experience intelligent food service management with ML-powered feedback analysis, 
+                    automated billing, and smart meal planning for modern educational institutions.
+                </p>
+                <div class="d-flex gap-3">
+                    {% if not session.user_id %}
+                        <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Get Started
+                        </a>
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </a>
+                    {% else %}
+                        {% if session.role == 'admin' %}
+                            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-home me-2"></i>My Dashboard
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image">
+                    <img src="https://pixabay.com/get/g740e59e1dc2b5c45492b386fc1ef2acbf9dcbc2cde3f03388c5e75e885a76ea6fb0f0b076f5e4f5011826f196ff86cdaccb843ea07761c6162cfa2392030486f_1280.jpg" 
+                         class="img-fluid rounded-3 shadow" alt="College Mess Hall">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mb-5">
+                <h2 class="fw-bold">Key Features</h2>
+                <p class="lead">Everything you need for efficient mess management</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Student Features -->
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-check-circle fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title">Meal Confirmation</h5>
+                        <p class="card-text">
+                            Confirm your meal participation in advance to help optimize food preparation 
+                            and reduce wastage.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-smile fa-3x text-warning"></i>
+                        </div>
+                        <h5 class="card-title">Emoji Feedback</h5>
+                        <p class="card-text">
+                            Rate your meals with intuitive emoji-based ratings and provide detailed 
+                            comments for continuous improvement.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-receipt fa-3x text-info"></i>
+                        </div>
+                        <h5 class="card-title">Smart Billing</h5>
+                        <p class="card-text">
+                            Automated monthly billing based on actual meal consumption, 
+                            promoting transparency and fairness.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin Features -->
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-brain fa-3x text-primary"></i>
+                        </div>
+                        <h5 class="card-title">ML Analytics</h5>
+                        <p class="card-text">
+                            Advanced sentiment analysis and feedback processing to identify 
+                            trends and improvement opportunities.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-chart-line fa-3x text-success"></i>
+                        </div>
+                        <h5 class="card-title">Attendance Prediction</h5>
+                        <p class="card-text">
+                            Smart forecasting using historical data to predict meal attendance 
+                            and optimize food preparation.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-4">
+                <div class="feature-card card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-utensils fa-3x text-danger"></i>
+                        </div>
+                        <h5 class="card-title">Menu Management</h5>
+                        <p class="card-text">
+                            Easy menu updates with AI-driven suggestions for improving 
+                            poorly-rated dishes and meal planning.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-item">
+                    <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                    <h3 class="fw-bold">500+</h3>
+                    <p class="text-muted">Active Students</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-item">
+                    <i class="fas fa-utensils fa-2x text-success mb-2"></i>
+                    <h3 class="fw-bold">1000+</h3>
+                    <p class="text-muted">Meals Served Daily</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-item">
+                    <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                    <h3 class="fw-bold">4.5</h3>
+                    <p class="text-muted">Average Rating</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-item">
+                    <i class="fas fa-chart-line fa-2x text-info mb-2"></i>
+                    <h3 class="fw-bold">25%</h3>
+                    <p class="text-muted">Waste Reduction</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+{% if not session.user_id %}
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="fw-bold mb-4">Ready to Transform Your Mess Management?</h2>
+        <p class="lead mb-4">
+            Join hundreds of students and administrators already using our smart mess management system.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Register Now
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

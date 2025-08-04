@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}Menu Management - Mess Management System{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h2 class="mb-1">
+                        <i class="fas fa-edit me-2"></i>Menu Management
+                    </h2>
+                    <p class="mb-0">Manage daily menus and view meal performance analytics</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Meal Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>Add New Meal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="action" value="add_meal">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Meal Name</label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       placeholder="e.g., Vegetable Biryani" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="meal_type" class="form-label">Meal Type</label>
+                                <select class="form-select" id="meal_type" name="meal_type" required>
+                                    <option value="">Select type</option>
+                                    <option value="breakfast">Breakfast</option>
+                                    <option value="lunch">Lunch</option>
+                                    <option value="dinner">Dinner</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="date" class="form-label">Date</label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                            </div>
+                            <div class="col-md-9">
+                                <label for="description" class="form-label">Description</label>
+                                <input type="text" class="form-control" id="description" name="description" 
+                                       placeholder="Brief description of the meal">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="price" class="form-label">Price (₹)</label>
+                                <input type="number" class="form-control" id="price" name="price" 
+                                       value="50.00" step="0.01" min="0" required>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-plus me-2"></i>Add Meal
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Meals -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-week me-2"></i>Upcoming Meals (Next 7 Days)
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterMeals('all')">All</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterMeals('breakfast')">Breakfast</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterMeals('lunch')">Lunch</button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="filterMeals('dinner')">Dinner</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_meals %}
+                        <div class="row g-4" id="mealsContainer">
+                            {% for meal in upcoming_meals %}
+                            <div class="col-md-6 col-lg-4 meal-card" data-meal-type="{{ meal.meal_type }}">
+                                <div class="card h-100 {% if meal.analysis.performance_score >= 75 %}border-success{% elif meal.analysis.performance_score >= 50 %}border-warning{% elif meal.analysis.total_feedback > 0 %}border-danger{% endif %}">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0">{{ meal.name }}</h6>
+                                            <small class="text-muted">{{ meal.date }}</small>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-secondary">{{ meal.meal_type.title() }}</span>
+                                            {% if meal.analysis.total_feedback > 0 %}
+                                                <span class="badge bg-{% if meal.analysis.performance_score >= 75 %}success{% elif meal.analysis.performance_score >= 50 %}warning{% else %}danger{% endif %}">
+                                                    {{ "%.0f"|format(meal.analysis.performance_score) }}%
+                                                </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if meal.description %}
+                                            <p class="card-text small text-muted">{{ meal.description }}</p>
+                                        {% endif %}
+                                        
+                                        <div class="row text-center mb-3">
+                                            <div class="col-4">
+                                                <small class="text-muted">Price</small>
+                                                <div class="fw-bold">₹{{ "%.2f"|format(meal.price) }}</div>
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="text-muted">Feedback</small>
+                                                <div class="fw-bold">{{ meal.analysis.total_feedback }}</div>
+                                            </div>
+                                            <div class="col-4">
+                                                <small class="text-muted">Avg Rating</small>
+                                                <div class="fw-bold">
+                                                    {% if meal.analysis.avg_rating > 0 %}
+                                                        {{ "%.1f"|format(meal.analysis.avg_rating) }}/4
+                                                    {% else %}
+                                                        N/A
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {% if meal.analysis.total_feedback > 0 %}
+                                            <!-- Rating Distribution -->
+                                            <div class="mb-3">
+                                                <small class="text-muted">Rating Distribution</small>
+                                                <div class="rating-bars">
+                                                    {% for i in range(4, 0, -1) %}
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <span class="small me-2">{{ i }}</span>
+                                                            <div class="progress flex-grow-1" style="height: 8px;">
+                                                                {% set count = meal.analysis.rating_distribution.get(i, 0) %}
+                                                                {% set percentage = (count / meal.analysis.total_feedback * 100) if meal.analysis.total_feedback > 0 else 0 %}
+                                                                <div class="progress-bar bg-{% if i >= 3 %}success{% elif i == 2 %}warning{% else %}danger{% endif %}" 
+                                                                     style="width: {{ percentage }}%"></div>
+                                                            </div>
+                                                            <span class="small ms-2">{{ count }}</span>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Sentiment Analysis -->
+                                            {% if meal.analysis.sentiment_analysis.overall_sentiment %}
+                                                <div class="mb-3">
+                                                    <small class="text-muted">Sentiment</small>
+                                                    <div>
+                                                        {% if meal.analysis.sentiment_analysis.overall_sentiment == 'positive' %}
+                                                            <span class="badge bg-success">
+                                                                <i class="fas fa-smile me-1"></i>Positive
+                                                            </span>
+                                                        {% elif meal.analysis.sentiment_analysis.overall_sentiment == 'negative' %}
+                                                            <span class="badge bg-danger">
+                                                                <i class="fas fa-frown me-1"></i>Negative
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">
+                                                                <i class="fas fa-meh me-1"></i>Neutral
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                            
+                                            <!-- Recommendations -->
+                                            {% if meal.analysis.recommendations %}
+                                                <div class="mb-3">
+                                                    <small class="text-muted">AI Recommendations</small>
+                                                    <ul class="list-unstyled mt-1">
+                                                        {% for rec in meal.analysis.recommendations[:2] %}
+                                                            <li class="small">
+                                                                <i class="fas fa-lightbulb text-warning me-1"></i>{{ rec }}
+                                                            </li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="text-center text-muted">
+                                                <i class="fas fa-comment-slash fa-2x mb-2"></i>
+                                                <p class="small mb-0">No feedback yet</p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-footer">
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-sm btn-outline-primary flex-grow-1" 
+                                                    onclick="editMeal({{ meal.id }}, '{{ meal.name }}', '{{ meal.description }}', {{ meal.price }})">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info" onclick="viewMealDetails({{ meal.id }})">
+                                                <i class="fas fa-eye me-1"></i>Details
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-utensils fa-3x mb-3"></i>
+                            <h5>No meals scheduled</h5>
+                            <p>Add your first meal using the form above.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Meal Modal -->
+<div class="modal fade" id="editMealModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Edit Meal
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="action" value="update_meal">
+                <input type="hidden" id="edit_meal_id" name="meal_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_name" class="form-label">Meal Name</label>
+                        <input type="text" class="form-control" id="edit_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_description" class="form-label">Description</label>
+                        <input type="text" class="form-control" id="edit_description" name="description">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_price" class="form-label">Price (₹)</label>
+                        <input type="number" class="form-control" id="edit_price" name="price" 
+                               step="0.01" min="0" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Meal Details Modal -->
+<div class="modal fade" id="mealDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle me-2"></i>Meal Details & Analytics
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="mealDetailsContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Set minimum date to today
+document.getElementById('date').setAttribute('min', new Date().toISOString().split('T')[0]);
+
+// Filter meals by type
+function filterMeals(type) {
+    const cards = document.querySelectorAll('.meal-card');
+    const buttons = document.querySelectorAll('.btn-group .btn');
+    
+    // Update button states
+    buttons.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Filter cards
+    cards.forEach(card => {
+        if (type === 'all' || card.dataset.mealType === type) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Edit meal function
+function editMeal(id, name, description, price) {
+    document.getElementById('edit_meal_id').value = id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_description').value = description || '';
+    document.getElementById('edit_price').value = price;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editMealModal'));
+    modal.show();
+}
+
+// View meal details function
+function viewMealDetails(mealId) {
+    // This would typically fetch detailed analytics via AJAX
+    // For now, show a placeholder
+    const content = `
+        <div class="text-center">
+            <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+            <h5>Detailed Analytics</h5>
+            <p class="text-muted">Detailed meal analytics and feedback analysis will be displayed here.</p>
+            <p class="small">This feature will be enhanced in the next version with comprehensive charts and insights.</p>
+        </div>
+    `;
+    
+    document.getElementById('mealDetailsContent').innerHTML = content;
+    const modal = new bootstrap.Modal(document.getElementById('mealDetailsModal'));
+    modal.show();
+}
+
+// Initialize default filter
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default active button
+    const firstButton = document.querySelector('.btn-group .btn');
+    if (firstButton) {
+        firstButton.classList.add('active');
+    }
+});
+</script>
+{% endblock %}
