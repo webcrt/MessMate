@@ -35,7 +35,7 @@
         
         <!-- Attendance Stats -->
         <div class="col-md-4 mb-3">
-            <div class="card bg-danger text-white h-100">
+            <div class="card bg-success text-white h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
@@ -274,9 +274,9 @@ const attendanceChart = new Chart(ctx, {
                 {{ attendance_stats.get('dinner', 0) }}
             ],
             backgroundColor: [
-                '#dc3545',  // Primary red
-                '#198754',  // Success green
-                '#ffc107'   // Warning yellow
+                '#28a745',  // Primary green
+                '#20c997',  // Teal green
+                '#17a2b8'   // Info blue
             ],
             borderWidth: 2,
             borderColor: '#fff'

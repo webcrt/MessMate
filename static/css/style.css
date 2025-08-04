@@ -2,11 +2,11 @@
 
 /* CSS Variables for consistent theming */
 :root {
-    --mess-primary: #dc3545;
-    --mess-secondary: #f8d7da;
-    --mess-accent: #ff6b35;
+    --mess-primary: #28a745;
+    --mess-secondary: #d4edda;
+    --mess-accent: #20c997;
     --mess-light: #f8f9fa;
-    --mess-dark: #721c24;
+    --mess-dark: #1e4b24;
     --mess-warning: #ffc107;
     --mess-success: #28a745;
     --mess-danger: #dc3545;
@@ -16,8 +16,8 @@
 /* Global Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(rgba(220, 53, 69, 0.7), rgba(220, 53, 69, 0.7)), 
-                url('https://pixabay.com/get/g740e59e1dc2b5c45492b386fc1ef2acbf9dcbc2cde3f03388c5e75e885a76ea6fb0f0b076f5e4f5011826f196ff86cdaccb843ea07761c6162cfa2392030486f_1280.jpg');
+    background: linear-gradient(rgba(46, 125, 50, 0.7), rgba(76, 175, 80, 0.7)), 
+                url('https://images.pexels.com/photos/3952060/pexels-photo-3952060.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
     background-size: cover;
     background-attachment: fixed;
     background-position: center;
@@ -64,8 +64,8 @@ body {
 
 /* Hero section */
 .hero-section {
-    background: linear-gradient(135deg, rgba(114, 28, 36, 0.9), rgba(220, 53, 69, 0.9)), 
-                url('https://pixabay.com/get/ge2872ed7776c4f8e98cd34b93c429dafb65b170e3a08120c8e29b33875b2ec94254b0b75ba6b4169a7f61f4eb9b416387a9b4d3080f2b1c5b4a1e2dbcc34be3d_1280.jpg');
+    background: linear-gradient(135deg, rgba(46, 125, 50, 0.9), rgba(76, 175, 80, 0.9)), 
+                url('https://images.pexels.com/photos/3952060/pexels-photo-3952060.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
