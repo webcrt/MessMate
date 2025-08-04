@@ -498,6 +498,70 @@ def export_data():
         flash(f'Error exporting data: {str(e)}', 'error')
         return redirect(url_for('admin_dashboard'))
 
+@app.route('/admin/test_ml_analysis')
+@admin_required  
+def test_ml_analysis():
+    """Test ML analysis functionality with current feedback data"""
+    try:
+        # Get all feedback
+        all_feedback = data_manager.get_all_feedback()
+        
+        if not all_feedback:
+            return jsonify({
+                'success': False,
+                'message': 'No feedback data available for analysis'
+            })
+        
+        # Convert feedback to dict format for ML analysis
+        feedback_dicts = [feedback.to_dict() for feedback in all_feedback]
+        
+        # Group feedback by meal
+        meal_feedback = {}
+        for feedback in feedback_dicts:
+            meal_id = feedback['meal_id']
+            if meal_id not in meal_feedback:
+                meal_feedback[meal_id] = []
+            meal_feedback[meal_id].append(feedback)
+        
+        # Analyze each meal's feedback using ML
+        analysis_results = {}
+        for meal_id, feedbacks in meal_feedback.items():
+            meal = data_manager.get_meal_by_id(meal_id)
+            meal_name = meal.name if meal else f"Meal {meal_id}"
+            
+            # Perform ML sentiment analysis
+            sentiment_analysis = sentiment_analyzer.analyze_meal_feedback(feedbacks)
+            
+            # Individual comment analysis
+            comment_analysis = []
+            for feedback in feedbacks:
+                if feedback.get('comment'):
+                    sentiment_result = sentiment_analyzer.analyze_comment(feedback['comment'])
+                    comment_analysis.append({
+                        'comment': feedback['comment'],
+                        'rating': feedback['rating'],
+                        'sentiment': sentiment_result['sentiment'],
+                        'polarity': round(sentiment_result['polarity'], 3),
+                        'subjectivity': round(sentiment_result['subjectivity'], 3)
+                    })
+            
+            analysis_results[meal_name] = {
+                'overall_analysis': sentiment_analysis,
+                'individual_comments': comment_analysis
+            }
+        
+        return jsonify({
+            'success': True,
+            'message': 'ML analysis completed successfully',
+            'data': analysis_results
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error in ML analysis: {str(e)}'
+        })
+
 # Error handlers
 @app.errorhandler(404)
 def not_found(error):
