@@ -1,7 +1,9 @@
 import os
 import uuid
+import csv
+import io
 from datetime import datetime, timedelta
-from flask import render_template, request, redirect, url_for, session, flash, jsonify
+from flask import render_template, request, redirect, url_for, session, flash, jsonify, make_response
 from werkzeug.utils import secure_filename
 from app import app
 from data_manager import data_manager
@@ -380,7 +382,121 @@ def forecast():
             prediction['meal_type'] = meal_type
             predictions.append(prediction)
     
-    return render_template('admin_dashboard.html', predictions=predictions)
+    return render_template('forecast.html', predictions=predictions)
+
+@app.route('/admin/generate_report')
+@admin_required
+def generate_report():
+    """Generate comprehensive admin report"""
+    try:
+        # Get all data for report
+        all_users = data_manager.get_all_users()
+        all_meals = data_manager._load_json(data_manager.meals_file)
+        all_feedback = data_manager.get_all_feedback()
+        all_confirmations = data_manager._load_json(data_manager.confirmations_file)
+        
+        # Calculate statistics
+        total_students = len([u for u in all_users if u.role == 'student'])
+        total_meals = len(all_meals)
+        total_feedback = len(all_feedback)
+        total_confirmations = len(all_confirmations)
+        
+        # Average rating
+        avg_rating = sum(f.rating for f in all_feedback) / len(all_feedback) if all_feedback else 0
+        
+        # Recent activity
+        recent_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
+        recent_feedback = [f for f in all_feedback if f.created_at >= recent_date]
+        recent_confirmations = [c for c in all_confirmations if c['date'] >= recent_date]
+        
+        report_data = {
+            'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'total_students': total_students,
+            'total_meals': total_meals,
+            'total_feedback': total_feedback,
+            'total_confirmations': total_confirmations,
+            'average_rating': round(avg_rating, 2),
+            'recent_feedback_count': len(recent_feedback),
+            'recent_confirmations_count': len(recent_confirmations)
+        }
+        
+        return jsonify({
+            'success': True,
+            'message': 'Report generated successfully',
+            'data': report_data
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error generating report: {str(e)}'
+        })
+
+@app.route('/admin/predictions')
+@admin_required
+def get_predictions():
+    """Get attendance predictions for next 3 days"""
+    try:
+        all_confirmations = data_manager._load_json(data_manager.confirmations_file)
+        
+        predictions = []
+        for i in range(1, 4):
+            future_date = (datetime.now() + timedelta(days=i)).strftime('%Y-%m-%d')
+            
+            for meal_type in ['breakfast', 'lunch', 'dinner']:
+                prediction = attendance_predictor.predict_meal_attendance(
+                    all_confirmations, meal_type, future_date
+                )
+                prediction['date'] = future_date
+                prediction['meal_type'] = meal_type
+                predictions.append(prediction)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Predictions generated successfully',
+            'data': predictions
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error generating predictions: {str(e)}'
+        })
+
+@app.route('/admin/export_data')
+@admin_required
+def export_data():
+    """Export all system data as CSV"""
+    try:
+        # Create CSV data
+        output = io.StringIO()
+        
+        # Export feedback data
+        all_feedback = data_manager.get_all_feedback()
+        if all_feedback:
+            writer = csv.writer(output)
+            writer.writerow(['Feedback ID', 'User ID', 'Meal ID', 'Rating', 'Comment', 'Created At'])
+            
+            for feedback in all_feedback:
+                writer.writerow([
+                    feedback.id,
+                    feedback.user_id,
+                    feedback.meal_id,
+                    feedback.rating,
+                    feedback.comment or '',
+                    feedback.created_at
+                ])
+        
+        csv_data = output.getvalue()
+        output.close()
+        
+        # Create response
+        response = make_response(csv_data)
+        response.headers['Content-Type'] = 'text/csv'
+        response.headers['Content-Disposition'] = f'attachment; filename=messmate_data_{datetime.now().strftime("%Y%m%d")}.csv'
+        
+        return response
+    except Exception as e:
+        flash(f'Error exporting data: {str(e)}', 'error')
+        return redirect(url_for('admin_dashboard'))
 
 # Error handlers
 @app.errorhandler(404)

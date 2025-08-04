@@ -295,15 +295,190 @@ const attendanceChart = new Chart(ctx, {
 
 // Quick action functions
 function generateReport() {
-    alert('Report generation feature will be implemented in the next version.');
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+    button.disabled = true;
+    
+    fetch('/admin/generate_report')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showReportModal(data.data);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error generating report: ' + error.message);
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
 }
 
 function viewPredictions() {
-    alert('Attendance prediction feature will be implemented in the next version.');
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Loading...';
+    button.disabled = true;
+    
+    fetch('/admin/predictions')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showPredictionsModal(data.data);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error loading predictions: ' + error.message);
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
 }
 
 function exportData() {
-    alert('Data export feature will be implemented in the next version.');
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Exporting...';
+    button.disabled = true;
+    
+    window.location.href = '/admin/export_data';
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 2000);
+}
+
+function showReportModal(data) {
+    const modalHtml = `
+        <div class="modal fade" id="reportModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">System Report</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <h3>${data.total_students}</h3>
+                                        <p class="mb-0">Total Students</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h3>${data.total_meals}</h3>
+                                        <p class="mb-0">Total Meals</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body text-center">
+                                        <h3>${data.total_feedback}</h3>
+                                        <p class="mb-0">Total Feedback</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h3>${data.average_rating}/5</h3>
+                                        <p class="mb-0">Average Rating</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <h6>Recent Activity (Last 7 Days)</h6>
+                        <p>Feedback: ${data.recent_feedback_count} | Confirmations: ${data.recent_confirmations_count}</p>
+                        <small class="text-muted">Generated at: ${data.generated_at}</small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('reportModal'));
+    modal.show();
+    
+    document.getElementById('reportModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+function showPredictionsModal(predictions) {
+    let predictionsHtml = '';
+    const dates = [...new Set(predictions.map(p => p.date))];
+    
+    dates.forEach(date => {
+        const dayPredictions = predictions.filter(p => p.date === date);
+        predictionsHtml += `
+            <div class="mb-3">
+                <h6>${date}</h6>
+                <div class="row g-2">
+        `;
+        
+        dayPredictions.forEach(pred => {
+            const confidence = Math.round(pred.confidence * 100);
+            predictionsHtml += `
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h6 class="text-capitalize">${pred.meal_type}</h6>
+                            <h4>${Math.round(pred.predicted_attendance)}</h4>
+                            <small class="text-muted">${confidence}% confidence</small>
+                            <br><small class="badge bg-secondary">${pred.trend}</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        predictionsHtml += '</div></div>';
+    });
+    
+    const modalHtml = `
+        <div class="modal fade" id="predictionsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Attendance Predictions</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        ${predictionsHtml}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    const modal = new bootstrap.Modal(document.getElementById('predictionsModal'));
+    modal.show();
+    
+    document.getElementById('predictionsModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
 }
 </script>
 {% endblock %}
