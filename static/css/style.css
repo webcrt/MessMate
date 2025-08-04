@@ -17,7 +17,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(rgba(46, 125, 50, 0.7), rgba(76, 175, 80, 0.7)), 
-                url('https://images.pexels.com/photos/3952060/pexels-photo-3952060.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
+                url('https://cdn.pixabay.com/photo/2017/09/01/13/56/university-2704306_1280.jpg');
     background-size: cover;
     background-attachment: fixed;
     background-position: center;
@@ -65,7 +65,7 @@ body {
 /* Hero section */
 .hero-section {
     background: linear-gradient(135deg, rgba(46, 125, 50, 0.9), rgba(76, 175, 80, 0.9)), 
-                url('https://images.pexels.com/photos/3952060/pexels-photo-3952060.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2');
+                url('https://cdn.pixabay.com/photo/2017/09/01/13/56/university-2704306_1280.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
