@@ -11,10 +11,28 @@
   {
     "id": 2,
     "username": "student",
-    "email": "student@mess.edu", 
+    "email": "student@mess.edu",
     "password_hash": "scrypt:32768:8:1$jYjOLj1Y45QAfrR5$b9f9c7d9c6d9f6e9d6f9e9f6d9f9c6d9c6d9f6e9d6f9e9f6d9f9c6d9c6d9f6e9d6f9e9f6d9f9c6d9c6d9f6e9d6",
     "role": "student",
     "name": "Demo Student",
     "created_at": "2024-08-04T00:00:00"
+  },
+  {
+    "id": 3,
+    "username": "swathi",
+    "email": "swathym78@gmail.com",
+    "password_hash": "scrypt:32768:8:1$xfZ5LANJsPO5nOiX$1a9fb1fc88d4c863532a5baca47cd4d021f91bbe53aeed3f28dafc86ac0b4f5d891235b062c2505f70074932152b23acab13aa37ed9550de5afd2f90dd5d31dd",
+    "role": "student",
+    "name": "swathi",
+    "created_at": "2025-08-04T05:36:51.218573"
+  },
+  {
+    "id": 4,
+    "username": "sarath",
+    "email": "sarath12@gmail.com",
+    "password_hash": "scrypt:32768:8:1$i1CqUrVCqxq6CntV$485003d20ce53afc542ed19070fbc82339b83e08a6f9c9e4b0687df4e40a6448af62aed5e325bac9a6057420dd23dbb74adc8df5d0d46c60e6d0f77422c5cf62",
+    "role": "admin",
+    "name": "sarath",
+    "created_at": "2025-08-04T05:38:50.368868"
   }
 ]
