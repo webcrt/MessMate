@@ -1,4 +1,4 @@
-// Mess Management System - Main JavaScript
+// MessMate - Main JavaScript
 
 // Initialize application when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -22,7 +22,7 @@ function initializeApp() {
     // Initialize auto-dismiss alerts
     initializeAlerts();
     
-    console.log('Mess Management System initialized successfully');
+    console.log('MessMate initialized successfully');
 }
 
 // Initialize Bootstrap tooltips
