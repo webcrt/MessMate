@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from flask import render_template, request, redirect, url_for, session, flash, jsonify, make_response
 from werkzeug.utils import secure_filename
 from app import app
-from data_manager import data_manager
+from db_service import db_service
 from ml_models import sentiment_analyzer, attendance_predictor, feedback_analyzer
 import logging
 
@@ -28,7 +28,7 @@ def admin_required(f):
             flash('Please log in to access this page.', 'warning')
             return redirect(url_for('login'))
         
-        user = data_manager.get_user_by_id(session['user_id'])
+        user = db_service.get_user_by_id(session['user_id'])
         if not user or user.role != 'admin':
             flash('Admin privileges required.', 'error')
             return redirect(url_for('student_dashboard'))
@@ -63,13 +63,13 @@ def register():
             return render_template('register.html')
         
         # Check if user already exists
-        if data_manager.get_user_by_username(username):
+        if db_service.get_user_by_username(username):
             flash('Username already exists.', 'error')
             return render_template('register.html')
         
         # Create user
         try:
-            user = data_manager.create_user(username, email, password, role, name)
+            user = db_service.create_user(username, email, password, role, name)
             flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('login'))
         except Exception as e:
@@ -89,7 +89,7 @@ def login():
             flash('Username and password are required.', 'error')
             return render_template('login.html')
         
-        user = data_manager.get_user_by_username(username)
+        user = db_service.get_user_by_username(username)
         if user and user.check_password(password):
             session['user_id'] = user.id
             session['username'] = user.username
@@ -117,7 +117,7 @@ def logout():
 @login_required
 def student_dashboard():
     """Student dashboard"""
-    user = data_manager.get_user_by_id(session['user_id'])
+    user = db_service.get_user_by_id(session['user_id'])
     if user.role == 'admin':
         return redirect(url_for('admin_dashboard'))
     
@@ -125,17 +125,17 @@ def student_dashboard():
     today = datetime.now().strftime('%Y-%m-%d')
     
     # Get today's meals
-    today_meals = data_manager.get_meals_by_date(today)
+    today_meals = db_service.get_meals_by_date(today)
     
     # Get user's confirmations for today
-    user_confirmations = data_manager.get_user_confirmations(user.id, today)
+    user_confirmations = db_service.get_user_confirmations(user.id, today)
     confirmed_meal_types = [conf.meal_type for conf in user_confirmations]
     
     # Get upcoming meals (next 3 days)
     upcoming_meals = []
     for i in range(1, 4):
         future_date = (datetime.now() + timedelta(days=i)).strftime('%Y-%m-%d')
-        future_meals = data_manager.get_meals_by_date(future_date)
+        future_meals = db_service.get_meals_by_date(future_date)
         if future_meals:
             upcoming_meals.extend(future_meals)
     
@@ -150,14 +150,14 @@ def student_dashboard():
 @admin_required
 def admin_dashboard():
     """Admin dashboard"""
-    user = data_manager.get_user_by_id(session['user_id'])
+    user = db_service.get_user_by_id(session['user_id'])
     
     # Get today's date
     today = datetime.now().strftime('%Y-%m-%d')
     
     # Get today's meals and confirmations
-    today_meals = data_manager.get_meals_by_date(today)
-    today_confirmations = data_manager.get_confirmations_by_date(today)
+    today_meals = db_service.get_meals_by_date(today)
+    today_confirmations = db_service.get_confirmations_by_date(today)
     
     # Calculate attendance statistics
     attendance_stats = {}
@@ -166,13 +166,13 @@ def admin_dashboard():
         attendance_stats[meal.meal_type] = len(meal_confirmations)
     
     # Get recent feedback
-    all_feedback = data_manager.get_all_feedback()
+    all_feedback = db_service.get_all_feedback()
     recent_feedback = sorted(all_feedback, key=lambda x: x.created_at, reverse=True)[:5]
     
     # Get meal performance analytics
     meal_analytics = []
     for meal in today_meals:
-        meal_feedback = data_manager.get_feedback_by_meal(meal.id)
+        meal_feedback = db_service.get_feedback_by_meal(meal.id)
         feedback_dicts = [fb.to_dict() for fb in meal_feedback]
         analysis = feedback_analyzer.analyze_meal_performance(meal.id, feedback_dicts)
         analysis['meal_name'] = meal.name
@@ -199,7 +199,7 @@ def meal_confirmation():
             return redirect(url_for('meal_confirmation'))
         
         # Check if meal exists for that date and type
-        meals = data_manager.get_meals_by_date(date)
+        meals = db_service.get_meals_by_date(date)
         meal = next((m for m in meals if m.meal_type == meal_type), None)
         
         if not meal:
@@ -209,17 +209,17 @@ def meal_confirmation():
                 'lunch': 'Lunch', 
                 'dinner': 'Dinner'
             }
-            meal = data_manager.create_meal(meal_names[meal_type], meal_type, date)
+            meal = db_service.create_meal(meal_names[meal_type], meal_type, date)
         
         # Check if already confirmed
-        existing_confirmations = data_manager.get_user_confirmations(session['user_id'], date)
+        existing_confirmations = db_service.get_user_confirmations(session['user_id'], date)
         already_confirmed = any(conf.meal_type == meal_type for conf in existing_confirmations)
         
         if already_confirmed:
             flash(f'You have already confirmed {meal_type} for {date}.', 'warning')
         else:
             # Create confirmation
-            data_manager.create_confirmation(session['user_id'], meal.id, date, meal_type)
+            db_service.create_confirmation(session['user_id'], meal.id, date, meal_type)
             flash(f'{meal_type.title()} confirmed for {date}.', 'success')
         
         return redirect(url_for('student_dashboard'))
@@ -234,7 +234,7 @@ def meal_confirmation():
 @login_required
 def feedback(meal_id):
     """Feedback submission page"""
-    meal = data_manager.get_meal_by_id(meal_id)
+    meal = db_service.get_meal_by_id(meal_id)
     if not meal:
         flash('Meal not found.', 'error')
         return redirect(url_for('student_dashboard'))
@@ -257,12 +257,12 @@ def feedback(meal_id):
                 file.save(photo_path)
         
         # Create feedback
-        feedback_obj = data_manager.create_feedback(session['user_id'], meal_id, rating, comment, photo_path)
+        feedback_obj = db_service.create_feedback(session['user_id'], meal_id, rating, comment, photo_path)
         
         # Analyze sentiment if comment provided
         if comment:
             sentiment_result = sentiment_analyzer.analyze_comment(comment)
-            data_manager.update_feedback_sentiment(feedback_obj.id, sentiment_result['polarity'])
+            db_service.update_feedback_sentiment(feedback_obj.id, sentiment_result['polarity'])
         
         flash('Thank you for your feedback!', 'success')
         return redirect(url_for('student_dashboard'))
@@ -273,7 +273,7 @@ def feedback(meal_id):
 @login_required
 def billing():
     """User billing page"""
-    user = data_manager.get_user_by_id(session['user_id'])
+    user = db_service.get_user_by_id(session['user_id'])
     
     # Get current month and year
     now = datetime.now()
@@ -281,7 +281,7 @@ def billing():
     month = request.args.get('month', now.month, type=int)
     
     # Get user's confirmations for the month
-    monthly_confirmations = data_manager.get_user_monthly_confirmations(user.id, year, month)
+    monthly_confirmations = db_service.get_user_monthly_confirmations(user.id, year, month)
     
     # Calculate billing
     total_meals = len(monthly_confirmations)
@@ -331,7 +331,7 @@ def menu_management():
             if not all([name, meal_type, date]):
                 flash('Name, meal type, and date are required.', 'error')
             else:
-                data_manager.create_meal(name, meal_type, date, description, price)
+                db_service.create_meal(name, meal_type, date, description, price)
                 flash('Meal added successfully!', 'success')
         
         elif action == 'update_meal':
@@ -341,7 +341,7 @@ def menu_management():
             price = request.form.get('price', type=float)
             
             if meal_id and name:
-                data_manager.update_meal(meal_id, name=name, description=description, price=price)
+                db_service.update_meal(meal_id, name=name, description=description, price=price)
                 flash('Meal updated successfully!', 'success')
             else:
                 flash('Invalid meal data.', 'error')
@@ -352,13 +352,14 @@ def menu_management():
     
     for i in range(7):  # Next 7 days
         date = (today + timedelta(days=i)).strftime('%Y-%m-%d')
-        daily_meals = data_manager.get_meals_by_date(date)
+        daily_meals = db_service.get_meals_by_date(date)
         for meal in daily_meals:
-            meal_feedback = data_manager.get_feedback_by_meal(meal.id)
+            meal_feedback = db_service.get_feedback_by_meal(meal.id)
             feedback_dicts = [fb.to_dict() for fb in meal_feedback]
             analysis = feedback_analyzer.analyze_meal_performance(meal.id, feedback_dicts)
-            meal.analysis = analysis
-            upcoming_meals.append(meal)
+            meal_dict = meal.to_dict()
+            meal_dict['analysis'] = analysis
+            upcoming_meals.append(meal_dict)
     
     return render_template('menu_management.html', upcoming_meals=upcoming_meals)
 
@@ -367,7 +368,7 @@ def menu_management():
 def forecast():
     """Attendance forecasting for admins"""
     # Get historical confirmation data
-    all_confirmations = data_manager._load_json(data_manager.confirmations_file)
+    all_confirmations = [c.to_dict() for c in db_service.get_all_confirmations()]
     
     # Predict for next 3 days
     predictions = []
@@ -390,10 +391,10 @@ def generate_report():
     """Generate comprehensive admin report"""
     try:
         # Get all data for report
-        all_users = data_manager.get_all_users()
-        all_meals = data_manager._load_json(data_manager.meals_file)
-        all_feedback = data_manager.get_all_feedback()
-        all_confirmations = data_manager._load_json(data_manager.confirmations_file)
+        all_users = db_service.get_all_users()
+        all_meals = db_service.get_all_meals()
+        all_feedback = db_service.get_all_feedback()
+        all_confirmations = db_service.get_all_confirmations()
         
         # Calculate statistics
         total_students = len([u for u in all_users if u.role == 'student'])
@@ -405,9 +406,9 @@ def generate_report():
         avg_rating = sum(f.rating for f in all_feedback) / len(all_feedback) if all_feedback else 0
         
         # Recent activity
-        recent_date = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d')
-        recent_feedback = [f for f in all_feedback if f.created_at >= recent_date]
-        recent_confirmations = [c for c in all_confirmations if c['date'] >= recent_date]
+        recent_date = datetime.now() - timedelta(days=7)
+        recent_feedback = [f for f in all_feedback if f.created_at and f.created_at >= recent_date.isoformat()]
+        recent_confirmations = [c for c in all_confirmations if c.date >= recent_date.strftime('%Y-%m-%d')]
         
         report_data = {
             'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -436,7 +437,7 @@ def generate_report():
 def get_predictions():
     """Get attendance predictions for next 3 days"""
     try:
-        all_confirmations = data_manager._load_json(data_manager.confirmations_file)
+        all_confirmations = [c.to_dict() for c in db_service.get_all_confirmations()]
         
         predictions = []
         for i in range(1, 4):
@@ -470,7 +471,7 @@ def export_data():
         output = io.StringIO()
         
         # Export feedback data
-        all_feedback = data_manager.get_all_feedback()
+        all_feedback = db_service.get_all_feedback()
         if all_feedback:
             writer = csv.writer(output)
             writer.writerow(['Feedback ID', 'User ID', 'Meal ID', 'Rating', 'Comment', 'Created At'])
@@ -504,7 +505,7 @@ def test_ml_analysis():
     """Test ML analysis functionality with current feedback data"""
     try:
         # Get all feedback
-        all_feedback = data_manager.get_all_feedback()
+        all_feedback = db_service.get_all_feedback()
         
         if not all_feedback:
             return jsonify({
@@ -526,7 +527,7 @@ def test_ml_analysis():
         # Analyze each meal's feedback using ML
         analysis_results = {}
         for meal_id, feedbacks in meal_feedback.items():
-            meal = data_manager.get_meal_by_id(meal_id)
+            meal = db_service.get_meal_by_id(meal_id)
             meal_name = meal.name if meal else f"Meal {meal_id}"
             
             # Perform ML sentiment analysis
